@@ -2,11 +2,9 @@
 
 mkdir -force build/class | out-null
 
-$srcfiles = ls -r -file src/*.java | % { $_.ToString() }
+rm -r build/class/*
 
-echo "Source files"
-echo $srcfiles
-echo "DONE"
+$srcfiles = ls -r -file src/*.java | % { $_.ToString() }
 
 javac -d build/class $srcfiles
 
