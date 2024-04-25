@@ -8,4 +8,4 @@ $srcfiles = ls -r -file src/*.java | % { $_.ToString() }
 
 javac -d build/class $srcfiles
 
-jar --create --file build/program.jar --main-class=WpiLogViewer -C build/class/ .
+jar --create --file build/program.jar --main-class=wpilogviewer.WpiLogViewer -C build/class/ .
