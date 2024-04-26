@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-public class WpiLogViewer {
+public class Main {
 	private static final String USAGE = "Usage: ./run [-h] [-topic <topic>] [-control] [-nocontrol] [-value] [-novalue] <file>";
 
 	public static void main(String[] args) {
