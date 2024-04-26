@@ -2,6 +2,7 @@ package wpilogviewer;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -103,8 +104,43 @@ public class WpiLogProcessor {
 				// Non-control record
 				var entry = idToEntry.get(entryId);
 				ByteReader payloadSupplier = new ByteReader(input, payloadSize);
-				logger.logValue(entry, timestamp, payloadSupplier);
+				logger.logValue(entry, timestamp, payloadSupplier::getUnchecked);
 				payloadSupplier.finish();
+			}
+		}
+	}
+
+	private static class ByteReader {
+		private boolean wasPolled = false;
+		private byte[] value;
+		private final InputStream input;
+		private final int numBytes;
+
+		public ByteReader(InputStream input, int numBytes) {
+			this.input = input;
+			this.numBytes = numBytes;
+		}
+
+		public void finish() throws IOException {
+			if (!wasPolled) {
+				input.skip(numBytes);
+				wasPolled = true;
+			}
+		}
+
+		public byte[] get() throws IOException {
+			if (!wasPolled) {
+				value = input.readNBytes(numBytes);
+				wasPolled = true;
+			}
+			return value;
+		}
+
+		public byte[] getUnchecked() {
+			try {
+				return get();
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
 			}
 		}
 	}

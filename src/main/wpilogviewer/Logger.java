@@ -2,6 +2,7 @@ package wpilogviewer;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 public class Logger {
 	private final String nameFilter;
@@ -35,7 +36,7 @@ public class Logger {
 		System.out.println("Got Set Metadata record at " + timestamp + " for entry ID " + entry.id + " (name \"" + entry.name + "\") to \"" + newMetadata + "\"");
 	}
 
-	public void logValue(WpiLogEntry entry, long timestamp, ByteReader payloadSupplier) throws IOException {
+	public void logValue(WpiLogEntry entry, long timestamp, Supplier<byte[]> payloadSupplier) {
 		if (!logValue) {
 			return;
 		}
