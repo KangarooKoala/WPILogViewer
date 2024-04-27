@@ -4,13 +4,13 @@
 [int]$verbosity = 1
 
 foreach ($arg in $ARGS) {
-	if ($arg -eq '-q') {
+	if ($arg -ceq '-q') {
 		if ($verbosity -gt 1) {
 			echo 'Cannot specify -q with -v'
 			exit 1
 		}
 		$verbosity = 0
-	} elseif ($arg -eq '-v') {
+	} elseif ($arg -ceq '-v') {
 		if ($verbosity -lt 1) {
 			echo 'Cannot specify -v with -q'
 			exit 1

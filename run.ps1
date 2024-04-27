@@ -8,15 +8,15 @@
 
 for ([int]$i = 0; $i -lt $ARGS.Length; ++$i) {
 	[string]$arg = $ARGS[$i]
-	if ($arg -eq '-Sskipbuild') {
+	if ($arg -ceq '-Sskipbuild') {
 		$build = $false
-	} elseif ($arg -eq '-Sq' -or $arg -eq '-Squiet') {
+	} elseif ($arg -ceq '-Sq' -or $arg -ceq '-Squiet') {
 		if ($verbosity -gt 1) {
 			echo 'Cannot specify -Sq with -Sv'
 			exit 1
 		}
 		$verbosity = 0
-	} elseif ($arg -eq '-Sv' -or $arg -eq '-Sverbose') {
+	} elseif ($arg -ceq '-Sv' -or $arg -ceq '-Sverbose') {
 		if ($verbosity -lt 1) {
 			echo 'Cannot specify -Sv with -Sq'
 			exit 1
