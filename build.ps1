@@ -1,7 +1,7 @@
 # We assume we're in the project root directory
 
 # 0: quiet; 1: normal; 2: verbose
-$verbosity = 1
+[int]$verbosity = 1
 
 foreach ($arg in $ARGS) {
 	if ($arg -eq '-q') {
@@ -34,7 +34,7 @@ if ($verbosity -ge 2) {
 	echo 'Loading source files'
 }
 
-$srcfiles = ls -r -file src/*.java | % { $_.ToString() }
+[string[]]$srcfiles = ls -r -file src/*.java | % { $_.ToString() }
 
 if ($verbosity -ge 1) {
 	echo "Compiling $($srcfiles.Length) files"

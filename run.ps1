@@ -1,13 +1,13 @@
 # We assume we're in the project root directory
 
-$programargs = @()
+[string[]]$programargs = @()
 
-$build = $true
+[bool]$build = $true
 # 1: normal; 2: verbose
-$verbosity = 1
+[int]$verbosity = 1
 
 for ([int]$i = 0; $i -lt $ARGS.Length; ++$i) {
-	$arg = $ARGS[$i]
+	[string]$arg = $ARGS[$i]
 	if ($arg -eq '-Sskipbuild') {
 		$build = $false
 	} elseif ($arg -eq '-Sv' -or $arg -eq '-Sverbose') {
