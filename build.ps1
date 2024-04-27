@@ -49,5 +49,5 @@ if ($verbosity -ge 1) {
 jar --create --file build/program.jar --main-class=wpilogviewer.Main -C build/class/ .
 
 if ($verbosity -ge 1) {
-	echo 'Done'
+	echo 'Done building'
 }
