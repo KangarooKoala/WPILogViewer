@@ -3,11 +3,11 @@ package wpilogviewer;
 import java.util.function.Supplier;
 
 public interface Logger {
-	void logStart(WpiLogEntry entry, long timestamp);
+	void logStart(long entryId, String entryName, String entryType, String entryMetadata, long timestamp);
 
-	void logFinish(WpiLogEntry entry, long timestamp);
+	void logFinish(long entryId, long timestamp);
 
-	void logSetMetadata(WpiLogEntry entry, long timestamp, String newMetadata);
+	void logSetMetadata(long entryId, long timestamp, String newMetadata);
 
-	void logValue(WpiLogEntry entry, long timestamp, Supplier<byte[]> payloadSupplier);
+	void logValue(long entryId, long timestamp, Supplier<byte[]> payloadSupplier);
 }

@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 public class WpiLogProcessor {
 	private static int readInt(InputStream input, int length) throws IOException {
@@ -23,7 +21,6 @@ public class WpiLogProcessor {
 
 	public static void process(InputStream data, Logger logger) throws IOException {
 		final var input = data;
-		Map<Long, WpiLogEntry> idToEntry = new HashMap<>();
 		// Process header
 		// Expect WPILOG
 		byte[] wpilogHeaderBytes = data.readNBytes(6);
@@ -72,39 +69,25 @@ public class WpiLogProcessor {
 					var newEntryType = readUtf8String(input, newEntryTypeLength);
 					int newEntryMetadataLength = readInt(input, 4);
 					var newEntryMetadata = readUtf8String(input, newEntryMetadataLength);
-					var entry = new WpiLogEntry(newEntryId, newEntryName, newEntryType, newEntryMetadata);
-					logger.logStart(entry, timestamp);
-					idToEntry.put(newEntryId, entry);
+					logger.logStart(newEntryId, newEntryName, newEntryType, newEntryMetadata, timestamp);
 				} else if (type == 1) {
 					// Finish record
 					int finishedEntryId = readInt(input, 4);
-					if (!idToEntry.containsKey(finishedEntryId)) {
-						System.err.println("Could not end entry with non-existent ID " + finishedEntryId + "!");
-					} else {
-						var entry = idToEntry.remove(finishedEntryId);
-						logger.logFinish(entry, timestamp);
-					}
+					logger.logFinish(finishedEntryId, timestamp);
 				} else if (type == 2) {
 					// Set metadata record
 					long updateEntryId = readLong(input, 4);
 					int updateEntryMetadataLength = readInt(input, 4);
 					String updateEntryMetadata = readUtf8String(input, updateEntryMetadataLength);
-					if (!idToEntry.containsKey(updateEntryId)) {
-						System.err.println("Could not set metadata of entry with non-existent ID " + updateEntryId + "!");
-					} else {
-						var entry = idToEntry.get(updateEntryId);
-						entry.metadata = updateEntryMetadata;
-						logger.logSetMetadata(entry, timestamp, updateEntryMetadata);
-					}
+					logger.logSetMetadata(updateEntryId, timestamp, updateEntryMetadata);
 				} else {
 					System.err.println("Unknown control record with type " + type + "! Aborting");
 					return;
 				}
 			} else {
 				// Non-control record
-				var entry = idToEntry.get(entryId);
 				ByteReader payloadSupplier = new ByteReader(input, payloadSize);
-				logger.logValue(entry, timestamp, payloadSupplier::getUnchecked);
+				logger.logValue(entryId, timestamp, payloadSupplier::getUnchecked);
 				payloadSupplier.finish();
 			}
 		}

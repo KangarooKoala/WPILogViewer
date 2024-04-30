@@ -1,12 +1,29 @@
 package wpilogviewer;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class PrintLogger implements Logger {
+	private static class Entry {
+		public final long id;
+		public final String name;
+		public final String type;
+		public String metadata;
+
+		public Entry(long id, String name, String type, String metadata) {
+			this.id = id;
+			this.name = name;
+			this.type = type;
+			this.metadata = metadata;
+		}
+	}
+
 	private final String nameFilter;
 	private final boolean logControl;
 	private final boolean logValue;
+	private final Map<Long, Entry> idToEntry = new HashMap<>();
 
 	public PrintLogger(String nameFilter, boolean logControl, boolean logValue) {
 		this.nameFilter = nameFilter;
@@ -14,31 +31,46 @@ public class PrintLogger implements Logger {
 		this.logValue = logValue;
 	}
 
-	public void logStart(WpiLogEntry entry, long timestamp) {
+	public void logStart(long entryId, String entryName, String entryType, String entryMetadata, long timestamp) {
+		var entry = new Entry(entryId, entryName, entryType, entryMetadata);
+		idToEntry.put(entryId, entry);
 		if (!logControl) {
 			return;
 		}
 		System.out.println("Got Start record at " + timestamp + " for entry ID " + entry.id + ", name \"" + entry.name + "\", type \"" + entry.type + "\", and metadata \"" + entry.metadata + "\"");
 	}
 
-	public void logFinish(WpiLogEntry entry, long timestamp) {
+	public void logFinish(long entryId, long timestamp) {
+		if (!idToEntry.containsKey(entryId)) {
+			System.err.println("Could not end entry with non-existent ID " + entryId + "!");
+			return;
+		}
+		var entry = idToEntry.remove(entryId);
 		if (!logControl) {
 			return;
 		}
 		System.out.println("Got Finish record at " + timestamp + " for entry ID " + entry.id + " (name \"" + entry.name + "\")");
 	}
 
-	public void logSetMetadata(WpiLogEntry entry, long timestamp, String newMetadata) {
+	public void logSetMetadata(long entryId, long timestamp, String newMetadata) {
+		if (!idToEntry.containsKey(entryId)) {
+			System.err.println("Could not set metadata of entry with non-existent ID " + entryId + "!");
+			return;
+		}
+		var entry = idToEntry.get(entryId);
+		entry.metadata = newMetadata;
 		if (!logControl) {
 			return;
 		}
 		System.out.println("Got Set Metadata record at " + timestamp + " for entry ID " + entry.id + " (name \"" + entry.name + "\") to \"" + newMetadata + "\"");
 	}
 
-	public void logValue(WpiLogEntry entry, long timestamp, Supplier<byte[]> payloadSupplier) {
+	public void logValue(long entryId, long timestamp, Supplier<byte[]> payloadSupplier) {
+		// If we don't log values, we can completely skip getting the entry
 		if (!logValue) {
 			return;
 		}
+		var entry = idToEntry.get(entryId);
 		if (nameFilter != null && !entry.name.equals(nameFilter)) {
 			return;
 		}
