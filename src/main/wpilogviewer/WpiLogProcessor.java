@@ -72,7 +72,7 @@ public class WpiLogProcessor {
 					logger.logStart(newEntryId, newEntryName, newEntryType, newEntryMetadata, timestamp);
 				} else if (type == 1) {
 					// Finish record
-					int finishedEntryId = readInt(input, 4);
+					long finishedEntryId = readLong(input, 4);
 					logger.logFinish(finishedEntryId, timestamp);
 				} else if (type == 2) {
 					// Set metadata record
