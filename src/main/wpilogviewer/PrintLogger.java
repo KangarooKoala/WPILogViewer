@@ -32,6 +32,10 @@ public class PrintLogger implements Logger {
 	}
 
 	public void logStart(long entryId, String entryName, String entryType, String entryMetadata, long timestamp) {
+		if (idToEntry.containsKey(entryId)) {
+			var oldEntry = idToEntry.get(entryId);
+			System.out.println("Note: Overriding existing entry with id " + entryId + " and name " + oldEntry.name + "!");
+		}
 		var entry = new Entry(entryId, entryName, entryType, entryMetadata);
 		idToEntry.put(entryId, entry);
 		if (!logControl) {
@@ -68,6 +72,10 @@ public class PrintLogger implements Logger {
 	public void logValue(long entryId, long timestamp, Supplier<byte[]> payloadSupplier) {
 		// If we don't log values, we can completely skip getting the entry
 		if (!logValue) {
+			return;
+		}
+		if (!idToEntry.containsKey(entryId)) {
+			System.err.println("Cannot log to entry with non-existent ID " + entryId + "!");
 			return;
 		}
 		var entry = idToEntry.get(entryId);
