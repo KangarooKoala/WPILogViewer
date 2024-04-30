@@ -31,13 +31,29 @@ public class PrintLogger implements Logger {
 		this.logValue = logValue;
 	}
 
+	private boolean hasEntry(long id) {
+		return idToEntry.containsKey(id);
+	}
+
+	private void addEntry(long id, Entry entry) {
+		idToEntry.put(id, entry);
+	}
+
+	private Entry removeEntry(long id) {
+		return idToEntry.remove(id);
+	}
+
+	private Entry getEntry(long id) {
+		return idToEntry.get(id);
+	}
+
 	public void logStart(long entryId, String entryName, String entryType, String entryMetadata, long timestamp) {
-		if (idToEntry.containsKey(entryId)) {
-			var oldEntry = idToEntry.get(entryId);
+		if (hasEntry(entryId)) {
+			var oldEntry = getEntry(entryId);
 			System.out.println("Note: Overriding existing entry with id " + entryId + " and name " + oldEntry.name + "!");
 		}
 		var entry = new Entry(entryId, entryName, entryType, entryMetadata);
-		idToEntry.put(entryId, entry);
+		addEntry(entryId, entry);
 		if (!logControl) {
 			return;
 		}
@@ -45,11 +61,11 @@ public class PrintLogger implements Logger {
 	}
 
 	public void logFinish(long entryId, long timestamp) {
-		if (!idToEntry.containsKey(entryId)) {
+		if (!hasEntry(entryId)) {
 			System.err.println("Could not end entry with non-existent ID " + entryId + "!");
 			return;
 		}
-		var entry = idToEntry.remove(entryId);
+		var entry = removeEntry(entryId);
 		if (!logControl) {
 			return;
 		}
@@ -57,11 +73,11 @@ public class PrintLogger implements Logger {
 	}
 
 	public void logSetMetadata(long entryId, long timestamp, String newMetadata) {
-		if (!idToEntry.containsKey(entryId)) {
+		if (!hasEntry(entryId)) {
 			System.err.println("Could not set metadata of entry with non-existent ID " + entryId + "!");
 			return;
 		}
-		var entry = idToEntry.get(entryId);
+		var entry = getEntry(entryId);
 		entry.metadata = newMetadata;
 		if (!logControl) {
 			return;
@@ -74,11 +90,11 @@ public class PrintLogger implements Logger {
 		if (!logValue) {
 			return;
 		}
-		if (!idToEntry.containsKey(entryId)) {
+		if (!hasEntry(entryId)) {
 			System.err.println("Cannot log to entry with non-existent ID " + entryId + "!");
 			return;
 		}
-		var entry = idToEntry.get(entryId);
+		var entry = getEntry(entryId);
 		if (nameFilter != null && !entry.name.equals(nameFilter)) {
 			return;
 		}
