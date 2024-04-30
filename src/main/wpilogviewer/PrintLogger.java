@@ -47,6 +47,7 @@ public class PrintLogger implements Logger {
 		return idToEntry.get(id);
 	}
 
+	@Override
 	public void logStart(long entryId, String entryName, String entryType, String entryMetadata, long timestamp) {
 		if (hasEntry(entryId)) {
 			var oldEntry = getEntry(entryId);
@@ -60,6 +61,7 @@ public class PrintLogger implements Logger {
 		System.out.println("Got Start record at " + timestamp + " for entry ID " + entry.id + ", name \"" + entry.name + "\", type \"" + entry.type + "\", and metadata \"" + entry.metadata + "\"");
 	}
 
+	@Override
 	public void logFinish(long entryId, long timestamp) {
 		if (!hasEntry(entryId)) {
 			System.err.println("Could not end entry with non-existent ID " + entryId + "!");
@@ -72,6 +74,7 @@ public class PrintLogger implements Logger {
 		System.out.println("Got Finish record at " + timestamp + " for entry ID " + entry.id + " (name \"" + entry.name + "\")");
 	}
 
+	@Override
 	public void logSetMetadata(long entryId, long timestamp, String newMetadata) {
 		if (!hasEntry(entryId)) {
 			System.err.println("Could not set metadata of entry with non-existent ID " + entryId + "!");
@@ -85,6 +88,7 @@ public class PrintLogger implements Logger {
 		System.out.println("Got Set Metadata record at " + timestamp + " for entry ID " + entry.id + " (name \"" + entry.name + "\") to \"" + newMetadata + "\"");
 	}
 
+	@Override
 	public void logValue(long entryId, long timestamp, Supplier<byte[]> payloadSupplier) {
 		// If we don't log values, we can completely skip getting the entry
 		if (!logValue) {
