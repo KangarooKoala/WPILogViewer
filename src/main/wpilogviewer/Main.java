@@ -50,7 +50,7 @@ public class Main {
 			System.out.println(USAGE);
 			return;
 		}
-		var logger = new Logger(topicFilter, logControl, logValue);
+		var logger = new PrintLogger(topicFilter, logControl, logValue);
 		if (fileName.equals("-")) {
 			try {
 				WpiLogProcessor.process(System.in, logger);
