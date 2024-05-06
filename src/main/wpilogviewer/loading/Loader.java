@@ -57,8 +57,7 @@ public class Loader {
 			return null;
 		}
 		var floorEntry = startToEntry.get(floorTimestamp);
-		if (floorEntry.getEndTimestamp() > 0 && floorEntry.getEndTimestamp() < timestamp) {
-			// Entry got closed
+		if (floorEntry.isExpiredAt(timestamp)) {
 			return null;
 		}
 		return floorEntry;

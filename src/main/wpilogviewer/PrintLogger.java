@@ -58,7 +58,7 @@ public class PrintLogger implements Logger {
 		if (!logControl) {
 			return;
 		}
-		System.out.println("Got Start record at " + timestamp + " for entry ID " + entry.id + ", name \"" + entry.name + "\", type \"" + entry.type + "\", and metadata \"" + entry.metadata + "\"");
+		System.out.println("Got Start record at " + Long.toUnsignedString(timestamp) + " for entry ID " + entry.id + ", name \"" + entry.name + "\", type \"" + entry.type + "\", and metadata \"" + entry.metadata + "\"");
 	}
 
 	@Override
@@ -85,7 +85,7 @@ public class PrintLogger implements Logger {
 		if (!logControl) {
 			return;
 		}
-		System.out.println("Got Set Metadata record at " + timestamp + " for entry ID " + entry.id + " (name \"" + entry.name + "\") to \"" + newMetadata + "\"");
+		System.out.println("Got Set Metadata record at " + Long.toUnsignedString(timestamp) + " for entry ID " + entry.id + " (name \"" + entry.name + "\") to \"" + newMetadata + "\"");
 	}
 
 	@Override
@@ -214,9 +214,9 @@ public class PrintLogger implements Logger {
 			}
 		}
 		if (knownType) {
-			System.out.println("entry " + entry.id + " (type " + entry.type + ") at " + timestamp + " got value " + valueString);
+			System.out.println("entry " + entry.id + " (type " + entry.type + ") at " + Long.toUnsignedString(timestamp) + " got value " + valueString);
 		} else {
-			System.out.println("entry " + entry.id + " (unknown type " + entry.type + ") at " + timestamp + " got value " + valueString);
+			System.out.println("entry " + entry.id + " (unknown type " + entry.type + ") at " + Long.toUnsignedString(timestamp) + " got value " + valueString);
 		}
 	}
 }

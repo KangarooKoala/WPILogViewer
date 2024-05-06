@@ -57,8 +57,7 @@ class LoaderLogger implements Logger {
 			return false;
 		}
 		var floorEntry = startToEntry.get(floorTimestamp);
-		if (floorEntry.getEndTimestamp() > 0 && floorEntry.getEndTimestamp() < timestamp) {
-			// Entry got closed
+		if (floorEntry.isExpiredAt(timestamp)) {
 			return false;
 		}
 		return true;
@@ -72,7 +71,7 @@ class LoaderLogger implements Logger {
 			return;
 		}
 		var floorEntry = startToEntry.get(floorTimestamp);
-		if (floorEntry.getEndTimestamp() < 0) {
+		if (!floorEntry.hasEnded()) {
 			floorEntry.finish(timestamp);
 		}
 		startToEntry.put(timestamp, entry);
@@ -96,7 +95,7 @@ class LoaderLogger implements Logger {
 			return null;
 		}
 		var floorEntry = startToEntry.get(floorTimestamp);
-		if (floorEntry.getEndTimestamp() > 0 && floorEntry.getEndTimestamp() < timestamp) {
+		if (floorEntry.isExpiredAt(timestamp)) {
 			// Entry got closed
 			return null;
 		}
@@ -119,7 +118,7 @@ class LoaderLogger implements Logger {
 	public void logFinish(long entryId, long timestamp) {
 		logDebug("Log finish: entryId=" + entryId);
 		if (!hasEntry(entryId, timestamp)) {
-			logErr("Could not end non-existent ID " + entryId + " at timestamp " + timestamp + "!");
+			logErr("Could not end non-existent ID " + entryId + " at timestamp " + Long.toUnsignedString(timestamp) + "!");
 			return;
 		}
 		finishEntry(entryId, timestamp);
@@ -130,7 +129,7 @@ class LoaderLogger implements Logger {
 	public void logSetMetadata(long entryId, long timestamp, String newMetadata) {
 		logDebug("Log set metadata: entryId=" + entryId);
 		if (!hasEntry(entryId, timestamp)) {
-			logErr("Could not set metadata of entry with non-existent ID " + entryId + " at timestamp " + timestamp + "!");
+			logErr("Could not set metadata of entry with non-existent ID " + entryId + " at timestamp " + Long.toUnsignedString(timestamp) + "!");
 			return;
 		}
 		var entry = getEntry(entryId, timestamp);
@@ -146,7 +145,7 @@ class LoaderLogger implements Logger {
 		}
 		++valueCount;
 		if (!hasEntry(entryId, timestamp)) {
-			logErr("Cannot log to entry with non-existent ID " + entryId + " at timestamp " + timestamp + "!");
+			logErr("Cannot log to entry with non-existent ID " + entryId + " at timestamp " + Long.toUnsignedString(timestamp) + "!");
 			return;
 		}
 		var entry = getEntry(entryId, timestamp);
