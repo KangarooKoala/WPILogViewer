@@ -8,22 +8,69 @@ import java.io.UncheckedIOException;
 import wpilogviewer.loading.Loader;
 
 public class Main {
-	private static final boolean PRINT = false;
-	private static final String USAGE = "Usage: wpilogviewer [-h] [-topic <topic>] [-control] [-nocontrol] [-value] [-novalue] <file>";
+	private enum Subcommand {
+		PRINT, SHELL;
+	}
+
+	private static final String PRINT_USAGE = "wpilogviewer print [-h] [-topic <topic>] [-control] [-nocontrol] [-value] [-novalue] <file>";
+	private static final String SHELL_USAGE = "wpilogviewer shell [-h] <file>";
+	private static final String USAGE = "Usage:\n\t" + PRINT_USAGE + "\n\t" + SHELL_USAGE;
 
 	public static void main(String[] args) {
 		if (args.length == 0) {
 			System.out.println(USAGE);
 			return;
 		}
+		boolean help = false;
+		boolean hasError = false;
+		Subcommand subcommand = null;
+		int start = 0;
+		for (; start < args.length; ++start) {
+			String arg = args[start];
+			if (arg.equals("-h") || arg.equals("--help") || arg.equals("-?")) {
+				help = true;
+				break;
+			} else if (arg.equals("print")) {
+				subcommand = Subcommand.PRINT;
+				break;
+			} else if (arg.equals("shell")) {
+				subcommand = Subcommand.SHELL;
+				break;
+			} else {
+				System.err.println("Unknown subcommand " + arg + "!");
+				hasError = true;
+			}
+		}
+		if (hasError) {
+			return;
+		}
+		if (help) {
+			System.out.println(USAGE);
+			return;
+		}
+		if (subcommand == null) {
+			System.err.println("Must specify a subcommand!");
+			return;
+		}
+		switch (subcommand) {
+			case PRINT -> printMain(args, start + 1);
+			case SHELL -> shellMain(args, start + 1);
+		}
+	}
+
+	private static void printMain(String[] args, int start) {
 		String fileName = null;
 		String topicFilter = null;
 		boolean logControl = true;
 		boolean logValue = true;
 		boolean argIsTopic = false;
 		boolean help = false;
-		for (String arg : args) {
-			if (arg.equals("-topic")) {
+		for (int i = start; i < args.length; ++i) {
+			String arg = args[i];
+			if (arg.equals("-h")) {
+				help = true;
+				break;
+			} else if (arg.equals("-topic")) {
 				argIsTopic = true;
 			} else if (arg.equals("-control")) {
 				logControl = true;
@@ -33,8 +80,6 @@ public class Main {
 				logValue = true;
 			} else if (arg.equals("-novalue")) {
 				logValue = false;
-			} else if (arg.equals("-h") || arg.equals("--help") || arg.equals("-?")) {
-				help = true;
 			} else {
 				if (argIsTopic) {
 					topicFilter = arg;
@@ -50,58 +95,85 @@ public class Main {
 			}
 		}
 		if (help) {
-			System.out.println(USAGE);
+			System.out.println(PRINT_USAGE);
 			return;
 		}
-		if (!PRINT) {
-			if (fileName.equals("-")) {
-				try {
-					processInputStream(System.in);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
-			} else {
-				try {
-					try (var inputStream = new FileInputStream(fileName)) {
-						try {
-							processInputStream(inputStream);
-						} catch (IOException e) {
-							throw new UncheckedIOException(e);
-						}
-					}
-				} catch (FileNotFoundException e) {
-					throw new UncheckedIOException(e);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
+		if (fileName == null) {
+			System.err.println("Must specify an input file!");
+			return;
+		}
+		var logger = new PrintLogger(topicFilter, logControl, logValue);
+		if (fileName.equals("-")) {
+			try {
+				WpiLogProcessor.process(System.in, logger);
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
 			}
 		} else {
-			var logger = new PrintLogger(topicFilter, logControl, logValue);
-			if (fileName.equals("-")) {
-				try {
-					WpiLogProcessor.process(System.in, logger);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
-			} else {
-				try {
-					try (var inputStream = new FileInputStream(fileName)) {
-						try {
-							WpiLogProcessor.process(inputStream, logger);
-						} catch (IOException e) {
-							throw new UncheckedIOException(e);
-						}
+			try {
+				try (var inputStream = new FileInputStream(fileName)) {
+					try {
+						WpiLogProcessor.process(inputStream, logger);
+					} catch (IOException e) {
+						throw new UncheckedIOException(e);
 					}
-				} catch (FileNotFoundException e) {
-					throw new UncheckedIOException(e);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
 				}
+			} catch (FileNotFoundException e) {
+				throw new UncheckedIOException(e);
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
 			}
 		}
 	}
 
-	private static void processInputStream(InputStream inputStream) throws IOException {
+	private static void shellMain(String[] args, int start) {
+		String fileName = null;
+		boolean help = false;
+		for (int i = start; i < args.length; ++i) {
+			String arg = args[i];
+			if (arg.equals("-h")) {
+				help = true;
+				break;
+			} else {
+				if (fileName != null) {
+					System.err.println("Cannot specify multiple files!");
+					return;
+				}
+				fileName = arg;
+			}
+		}
+		if (help) {
+			System.out.println(SHELL_USAGE);
+			return;
+		}
+		if (fileName == null) {
+			System.err.println("Must specify an input file!");
+			return;
+		}
+		if (fileName.equals("-")) {
+			try {
+				shellProcessInputStream(System.in);
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
+		} else {
+			try {
+				try (var inputStream = new FileInputStream(fileName)) {
+					try {
+						shellProcessInputStream(inputStream);
+					} catch (IOException e) {
+						throw new UncheckedIOException(e);
+					}
+				}
+			} catch (FileNotFoundException e) {
+				throw new UncheckedIOException(e);
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
+		}
+	}
+
+	private static void shellProcessInputStream(InputStream inputStream) throws IOException {
 		var loader = new Loader(inputStream, Loader.Verbosity.NORMAL);
 		System.out.println("Loading input...");
 		loader.load();
